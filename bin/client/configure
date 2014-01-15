@@ -1,0 +1,25 @@
+#!/bin/sh
+
+mkdir -p $HOME/.cacrt
+# copy the following files to it:
+# client1.key
+# client1.crt
+# ca.crt 
+# ta.key
+
+# on client box that will access the OpenVPN server. 
+# If your client is also a recent Fedora box and you use NetworkManager then 
+# you can create a small config file with the proper settings to access your 
+# OpenVPN server and import it in NetworkManager.
+
+template install openvpn/client.conf \
+	to $HOME/${vpnname}.conf \
+	mode 0644 \
+	variables \
+	home "${HOME}" \
+	name "${name}"
+
+# TODO: import NM
+# Settings -> Network -> + -> VPN -> Import from file...
+# nmcli ...
+

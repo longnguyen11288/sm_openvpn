@@ -1,0 +1,7 @@
+#!/bin/sh
+
+if command -v systemctl
+then systemctl start openvpn@my-vpn.service
+else /etc/init.d/openvpn start
+fi
+

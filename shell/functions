@@ -1,0 +1,69 @@
+#!/bin/sh
+
+read_config_defaults() {
+	config read file defaults key name from openvpn 
+	config read file defaults key network from openvpn 
+	config read file defaults key netmask from openvpn 
+}
+
+parse_args() {
+  declare -a new_args
+  while (( ${#extension_args} > 0 ))
+  do
+    array shift extension_args into token
+    case ${token} in
+      (openvpn)
+        continue
+        ;;
+      (name)
+        array shift extension_args into name
+        ;;
+			(network)
+				array shift extension_args into network
+				;;
+      (netmask)
+        array shift extension_args into netmask
+        ;;
+      (domain)
+        array shift extension_args into domain
+        ;;
+			(server)
+				array shift extension_args into server
+				;;
+			(*)
+        if variable is nonempty token
+        then new_args+=("${token}")
+        fi
+        ;;
+    esac
+  done
+  extension_args=("${new_args[@]}")
+}
+
+enable_init() {
+	if command -v systemctl 
+	then 
+		ln -s /lib/systemd/system/openvpn@.service \
+			/etc/systemd/system/multi-user.target.wants/openvpn@${name}.service
+		systemctl enable openvpn@${name}.service
+		systemctl daemon-reload
+	else # init-v
+		chmod 0755 /etc/init.d/openvpn
+		#	template install openvpn/init.d \
+		#		to /etc/init.d/openvpn \
+		#		mode 0755 \
+		#		owner root:root
+	fi
+}
+
+disable_init() {
+	if command -v systemctl 
+	then 
+		ln -s /lib/systemd/system/openvpn@.service \
+			/etc/systemd/system/multi-user.target.wants/openvpn@${name}.service
+		systemctl enable openvpn@${name}.service
+		systemctl daemon-reload
+	else # init-v
+		chmod 0644 /etc/init.d/openvpn
+	fi
+}

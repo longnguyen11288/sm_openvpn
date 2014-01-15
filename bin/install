@@ -1,0 +1,51 @@
+#!/bin/sh
+
+if command -v yum
+then yum install openvpn easy-rsa
+elif command -v apt-get
+then apt-get install openvpn easy-rsa
+else log error "Currently openvpn extension only works with yum/apt-get."
+fi
+
+paths create /etc/openvpn/keys
+
+files=(
+/var/log/openvpn.log 
+/var/log/openvpn-status.log 
+/etc/openvpn/ipp.txt
+)
+
+for f in ${files}
+do file create ${f} mode 0640 owner openvpn:openvpn
+done
+
+# If you already have keys then copy them to /etc/openvpn/keys.
+# If not then you will need to generate them. 
+# Read /usr/share/doc/easy-rsa-2.2.0/doc/README-2.0 for instructions how to do that.
+
+cd /etc/openvpn/keys
+openssl dhparam -out dh2048.pem 2048
+openvpn --genkey --secret ta.key
+
+template install openvpn/openvpn.conf \
+	to /etc/openvpn/${name}.conf  \
+	mode 0644 \
+	variables \
+	name "${name}" \
+	network "${network}" \
+	netmask "${netmask}" \
+	domain "${domain}"
+
+chown -R openvpn:openvpn /etc/openvpn
+chmod 750 /etc/openvpn /etc/openvpn/keys
+chmod 640 /etc/openvpn/*.{conf,txt}
+chmod 640 /etc/openvpn/keys/*.{crt,pem}
+chmod 600 /etc/openvpn/keys/*.key
+
+systemd_enable
+
+if command -v restorecon
+then
+	restorecon -v -F -R /etc/openvpn
+	restorecon -v -F /var/log/openvpn*.log
+fi
