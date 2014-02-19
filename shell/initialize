@@ -1,5 +1,7 @@
 #!/bin/sh
 
+
+echo "HELLO WORLD"
 read_config_defaults
 
 parse_args
